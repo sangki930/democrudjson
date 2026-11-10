@@ -1,0 +1,34 @@
+@baseUrl = http://localhost:5080
+
+### DB 연결 확인
+GET {{baseUrl}}/health
+
+### 생성 (응답의 id를 아래 itemId에 입력)
+POST {{baseUrl}}/api/items
+Content-Type: application/json
+
+{
+  "name": "PostgreSQL 테스트",
+  "description": "첫 번째 항목",
+  "isCompleted": false
+}
+
+### 목록 (최근 100개)
+GET {{baseUrl}}/api/items
+
+### 단건 조회
+@itemId = 00000000-0000-0000-0000-000000000000
+GET {{baseUrl}}/api/items/{{itemId}}
+
+### 수정
+PUT {{baseUrl}}/api/items/{{itemId}}
+Content-Type: application/json
+
+{
+  "name": "수정한 항목",
+  "description": null,
+  "isCompleted": true
+}
+
+### 삭제
+DELETE {{baseUrl}}/api/items/{{itemId}}

@@ -1,0 +1,98 @@
+@baseUrl = http://localhost:5080
+# 테스트 전용 ID입니다. 기존 데이터와 겹치면 다른 24자리 16진수로 변경하세요.
+# 아래 요청을 위에서 아래로 순서대로 실행합니다.
+@layerId = 507f1f77bcf86cd799439099
+
+### 01. 생성: 201, Location 헤더 및 id/data 확인
+POST {{baseUrl}}/api/layers
+Content-Type: application/json
+
+{
+  "id": "{{layerId}}",
+  "data": {
+    "layer_id": "sadasdnbvns",
+    "layer_desc": "",
+    "mark_ups": [{ "mark_up_id": 1, "mark_up_name": "abcd" }],
+    "tag": { "tag_idx": "dasdfasdaa", "tag_desc": "레이어내의 부품" }
+  }
+}
+
+### 02. 목록: 200, 생성한 데이터 확인 (ID순 최대 100개)
+GET {{baseUrl}}/api/layers
+
+### 03. 단건: 200, 중첩 JSON과 snake_case 키 유지 확인
+GET {{baseUrl}}/api/layers/{{layerId}}
+
+### 04. 중복 생성: 409, 기존 data 유지
+POST {{baseUrl}}/api/layers
+Content-Type: application/json
+
+{ "id": "{{layerId}}", "data": {} }
+
+### 05. 전체 수정: 200
+PUT {{baseUrl}}/api/layers/{{layerId}}
+Content-Type: application/json
+
+{
+  "data": {
+    "layer_id": "sadasdnbvns",
+    "layer_desc": "수정된 레이어",
+    "mark_ups": [],
+    "tag": { "tag_idx": "new", "tag_desc": "수정된 부품" },
+    "extra_field": { "enabled": true, "value": null }
+  }
+}
+
+### 06. 수정 후 조회: 200, 빈 배열 및 추가 필드 보존 확인
+GET {{baseUrl}}/api/layers/{{layerId}}
+
+### 07. 16자리 ID 거부: 400
+POST {{baseUrl}}/api/layers
+Content-Type: application/json
+
+{ "id": "0123456789abcdef", "data": {} }
+
+### 08. 24자리 비16진수 ID 거부: 400
+POST {{baseUrl}}/api/layers
+Content-Type: application/json
+
+{ "id": "gggggggggggggggggggggggg", "data": {} }
+
+### 09. data 누락: 400
+POST {{baseUrl}}/api/layers
+Content-Type: application/json
+
+{ "id": "{{layerId}}" }
+
+### 10. data null: 400
+PUT {{baseUrl}}/api/layers/{{layerId}}
+Content-Type: application/json
+
+{ "data": null }
+
+### 11. data 배열: 400
+PUT {{baseUrl}}/api/layers/{{layerId}}
+Content-Type: application/json
+
+{ "data": [] }
+
+### 12. JSON을 문자열로 전달: 400
+PUT {{baseUrl}}/api/layers/{{layerId}}
+Content-Type: application/json
+
+{ "data": "{\"layer_id\":\"test\"}" }
+
+### 13. 삭제: 204
+DELETE {{baseUrl}}/api/layers/{{layerId}}
+
+### 14. 삭제 후 조회: 404
+GET {{baseUrl}}/api/layers/{{layerId}}
+
+### 15. 없는 ID 수정: 404
+PUT {{baseUrl}}/api/layers/{{layerId}}
+Content-Type: application/json
+
+{ "data": {} }
+
+### 16. 재삭제: 404
+DELETE {{baseUrl}}/api/layers/{{layerId}}

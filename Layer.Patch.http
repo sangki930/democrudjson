@@ -1,0 +1,42 @@
+@baseUrl = http://localhost:5080
+@layerId = 507f1f77bcf86cd799439088
+
+### 01. 준비: 201 (테스트 전용 ID 사용)
+POST {{baseUrl}}/api/layers
+Content-Type: application/json
+
+{"id":"{{layerId}}","data":{"layer_id":"demo","layer_desc":"","mark_ups":[{"mark_up_id":1,"mark_up_name":"first"}],"tag":{"tag_idx":"tag1","tag_desc":"before"}}}
+
+### 02. 중첩 속성, 배열 요소 수정 및 끝에 추가: 200
+PATCH {{baseUrl}}/api/layers/{{layerId}}
+Content-Type: application/json-patch+json
+
+[
+  {"op":"replace","path":"/data/tag/tag_desc","value":"변경된 설명"},
+  {"op":"replace","path":"/data/mark_ups/0/mark_up_name","value":"첫 항목 수정"},
+  {"op":"add","path":"/data/mark_ups/-","value":{"mark_up_id":2,"mark_up_name":"추가"}}
+]
+
+### 03. 기대한 항목인지 확인한 후 삭제: 200
+PATCH {{baseUrl}}/api/layers/{{layerId}}
+Content-Type: application/json-patch+json
+
+[
+  {"op":"test","path":"/data/mark_ups/0/mark_up_id","value":1},
+  {"op":"remove","path":"/data/mark_ups/0"}
+]
+
+### 04. 실패 시 앞선 변경도 저장하지 않음: 400
+PATCH {{baseUrl}}/api/layers/{{layerId}}
+Content-Type: application/json-patch+json
+
+[
+  {"op":"replace","path":"/data/layer_desc","value":"저장되면 안 됨"},
+  {"op":"remove","path":"/data/mark_ups/999"}
+]
+
+### 05. 조회: layer_desc는 기존 빈 문자열 유지
+GET {{baseUrl}}/api/layers/{{layerId}}
+
+### 06. 정리: 204
+DELETE {{baseUrl}}/api/layers/{{layerId}}
